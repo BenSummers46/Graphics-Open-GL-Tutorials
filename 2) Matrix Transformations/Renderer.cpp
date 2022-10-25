@@ -2,6 +2,7 @@
 
 Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 	triangle = Mesh::GenerateTriangle();
+	camera = new Camera();
 
 	matrixShader = new Shader("MatrixVertex.glsl", "colourFragment.glsl");
 
@@ -17,6 +18,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 Renderer::~Renderer(void) {
 	delete triangle;
 	delete matrixShader;
+	delete camera;
 }
 
 void Renderer::SwitchToPerspective() {
@@ -47,4 +49,9 @@ void Renderer::RenderScene() {
 
 		triangle->Draw();
 	}
+}
+
+void Renderer::UpdateScene(float dt) {
+	camera->UpdateCamera(dt);
+	viewMatrix = camera->BuildViewMatrix();
 }
