@@ -11,7 +11,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent) {
 
 	shader = new Shader("TexturedVertex.glsl", "TexturedFragment.glsl");
 
-	if (!shader) {
+	if (!shader->LoadSuccess()) {
 		return;
 	}
 
