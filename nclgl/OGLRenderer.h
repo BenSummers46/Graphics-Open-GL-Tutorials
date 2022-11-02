@@ -58,6 +58,8 @@ public:
 	bool			HasInitialised() const;	
 	
 protected:
+	void SetShaderLight(const Light &l);
+	
 	void SetTextureRepeating(GLuint target, bool state);
 	virtual void	Resize(int x, int y);	
 	void			UpdateShaderMatrices();

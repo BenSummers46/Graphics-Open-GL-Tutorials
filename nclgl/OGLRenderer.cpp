@@ -14,6 +14,7 @@ _-_-_-_-_-_-_-""  ""
 */
 #include "OGLRenderer.h"
 #include "Shader.h"
+#include "Light.h"
 #include <algorithm>
 
 using std::string;
@@ -27,6 +28,12 @@ static const float biasValues[16] = {
 	0.5, 0.5, 0.5, 1.0
 };
 static const Matrix4 biasMatrix(biasValues);
+
+void OGLRenderer::SetShaderLight(const Light &l) {
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "lightPos"), 1, (float*)&l.GetPosition());
+	glUniform4fv(glGetUniformLocation(currentShader->GetProgram(), "lightColour"), 1, (float*)&l.GetColour());
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(), "lightRadius"), l.GetRadius());
+}
 
 /*
 Creates an OpenGL 3.2 CORE PROFILE rendering context. Sets itself
