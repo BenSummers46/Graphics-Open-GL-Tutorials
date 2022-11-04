@@ -90,6 +90,9 @@ public:
 	bool GetVertexIndicesForTri(unsigned int i, unsigned int& a, unsigned int& b, unsigned int& c) const;
 
 protected:
+	void GenerateTangents();
+	Vector4 GenerateTangent(int a, int b, int c);
+	
 	void	BufferData();
 
 	GLuint	arrayObject;
