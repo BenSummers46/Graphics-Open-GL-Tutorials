@@ -1,6 +1,10 @@
 #pragma once
 #include "../NCLGL/OGLRenderer.h"
 
+class Camera;
+class Shader;
+class HeightMap;
+
 class Renderer : public OGLRenderer	{
 public:
 	Renderer(Window &parent);
@@ -8,6 +12,26 @@ public:
 	 void RenderScene()				override;
 	 void UpdateScene(float msec)	override;
 protected:
-	Mesh*	triangle;
-	Shader* basicShader;
+	void DrawHeightMap();
+	void DrawSkyBox();
+
+	Shader* lightShader;
+	Shader* skyboxShader;
+
+	HeightMap* heightMap;
+	Mesh* quad;
+
+	Light* light;
+	Camera* camera;
+
+	GLuint cubeMap;
+	GLuint earthTex;
+	GLuint earthBump;
+	GLuint forestTex;
+	GLuint forestBump;
+	GLuint coastTex;
+	GLuint coastBump;
+	GLuint snowTex;
+	GLuint snowBump;
+
 };

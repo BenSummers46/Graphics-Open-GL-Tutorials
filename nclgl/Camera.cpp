@@ -21,7 +21,7 @@ void Camera::UpdateCamera(float dt) {
 	Vector3 forward = rotation * Vector3(0, 0, -1);
 	Vector3 right = rotation * Vector3(1, 0, 0);
 
-	float speed = 60.0f * dt; //default 30
+	float speed = 500.0f * dt; //default 30
 
 	if (Window::GetKeyboard()->KeyDown(KEYBOARD_W)) {
 		position += forward * speed;
