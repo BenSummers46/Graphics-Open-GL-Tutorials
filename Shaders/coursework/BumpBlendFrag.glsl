@@ -35,33 +35,75 @@ void main(void){
     mat3 TBN = mat3(normalize(IN.tangent), normalize(IN.binormal), normalize(IN.normal));
 
     vec4 diffuse;
+    vec4 diffuse2;
     vec3 bumpNormal;
+    float specFactor;
+    float a;
     
     if(IN.height < 0.04){
-        diffuse = texture(coastTex, IN.texCoord);
+        if(IN.height > 0.03){
+            diffuse = texture(coastTex, IN.texCoord);
+            diffuse2 = texture(forestTex, IN.texCoord);
+            float difference = IN.height - 0.03;
+            a = (difference / 0.01);
+        }else{
+            diffuse = texture(coastTex, IN.texCoord);
+            diffuse2 = diffuse;
+            a = 0;
+        }
+        //diffuse = texture(coastTex, IN.texCoord);
         bumpNormal = texture(coastBump, IN.texCoord).rgb;
+        bumpNormal = normalize(TBN * normalize(bumpNormal * 2.0 - 1.0));
+        specFactor = clamp(dot(halfDir, bumpNormal), 0.0, 1.0);
+        specFactor = pow(specFactor, 60.0);
     }else if(IN.height < 0.1){
-        diffuse = texture(forestTex, IN.texCoord);
+        if(IN.height > 0.08){
+            diffuse = texture(forestTex, IN.texCoord);
+            diffuse2 = texture(diffuseTex, IN.texCoord);
+            float difference = IN.height - 0.08;
+            a = (difference / 0.02);
+        }else{
+            diffuse = texture(forestTex, IN.texCoord);
+            diffuse2 = diffuse;
+            a = 0;
+        }
+        //diffuse = texture(forestTex, IN.texCoord);
         bumpNormal = texture(forestBump, IN.texCoord).rgb;
+        bumpNormal = normalize(TBN * normalize(bumpNormal * 2.0 - 1.0));
+        specFactor = clamp(dot(halfDir, bumpNormal), 0.0, 1.0);
+        specFactor = pow(specFactor, 70.0);
     }else if(IN.height < 0.4){
-        diffuse = texture(diffuseTex, IN.texCoord);
+        if(IN.height > 0.36){
+            diffuse = texture(diffuseTex, IN.texCoord);
+            diffuse2 = texture(snowTex, IN.texCoord);
+            float difference = IN.height - 0.36;
+            a = (difference / 0.04);
+        }else{
+            diffuse = texture(diffuseTex, IN.texCoord);
+            diffuse2 = diffuse;
+            a = 0;
+        }
+        //diffuse = texture(diffuseTex, IN.texCoord);
         bumpNormal = texture(bumpTex, IN.texCoord).rgb;
+        bumpNormal = normalize(TBN * normalize(bumpNormal * 2.0 - 1.0));
+        specFactor = clamp(dot(halfDir, bumpNormal), 0.0, 1.0);
+        specFactor = pow(specFactor, 40.0);
     }
     else{
         diffuse = texture(snowTex, IN.texCoord);
+        diffuse2 = texture(diffuseTex, IN.texCoord);
+        a = 0.5;
         bumpNormal = texture(snowBump, IN.texCoord).rgb;
+        bumpNormal = normalize(TBN * normalize(bumpNormal * 2.0 - 1.0));
+        specFactor = clamp(dot(halfDir, bumpNormal), 0.0, 1.0);
+        specFactor = pow(specFactor, 5.0);
     }
-    
-    bumpNormal = normalize(TBN * normalize(bumpNormal * 2.0 - 1.0));
 
     float lambert = max(dot(incident, bumpNormal), 0.0f); 
     float distance = length(lightPos - IN.worldPos);
     float attenuation = 1.0f - clamp(distance / lightRadius, 0.0, 1.0);
 
-    float specFactor = clamp(dot(halfDir, bumpNormal), 0.0, 1.0);
-    specFactor = pow(specFactor, 60.0);
-
-    vec3 surface = (diffuse.rgb * lightColour.rgb);
+    vec3 surface = (mix(diffuse.rgb, diffuse2.rgb, a) * lightColour.rgb);
     fragColour.rgb = surface * lambert * attenuation;
     fragColour.rgb += (specularColour.rgb * specFactor) * attenuation * 0.33;
     fragColour.rgb += surface * 0.1f;

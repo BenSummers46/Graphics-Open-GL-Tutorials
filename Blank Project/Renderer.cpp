@@ -45,7 +45,7 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	Vector3 heightmapSize = heightMap->GetHeightMapSize();
 
 	camera = new Camera(-45.0f, 0.0f, heightmapSize * Vector3(0.5f, 1.0f, 0.5f)); //was 5
-	light = new Light(heightmapSize * Vector3(1.0f, 1.0f, 0.5f), Vector4(1, 1, 1, 1), Vector4(1, 1, 1, 1), heightmapSize.x * 4); //was 20
+	light = new Light(heightmapSize * Vector3(1.0f, 1.5f, 1.0f), Vector4(1, 1, 1, 1), Vector4(1, 1, 1, 1), heightmapSize.x * 2); //was 20
 
 	projMatrix = Matrix4::Perspective(1.0f, 15000.0f, (float)width / (float)height, 45.0f);
 
