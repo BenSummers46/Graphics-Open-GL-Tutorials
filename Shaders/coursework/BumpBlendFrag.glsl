@@ -40,63 +40,63 @@ void main(void){
     float specFactor;
     float a;
     
-    if(IN.height < 0.04){
+    if(IN.height < 0.05){
         if(IN.height > 0.03){
             diffuse = texture(coastTex, IN.texCoord);
             diffuse2 = texture(forestTex, IN.texCoord);
             float difference = IN.height - 0.03;
-            a = (difference / 0.01);
+            a = (difference / 0.02);
+            bumpNormal = mix(texture(coastBump, IN.texCoord).rgb, texture(forestBump, IN.texCoord).rgb, a);
         }else{
             diffuse = texture(coastTex, IN.texCoord);
             diffuse2 = diffuse;
             a = 0;
+            bumpNormal = texture(coastBump, IN.texCoord).rgb;
         }
-        //diffuse = texture(coastTex, IN.texCoord);
-        bumpNormal = texture(coastBump, IN.texCoord).rgb;
         bumpNormal = normalize(TBN * normalize(bumpNormal * 2.0 - 1.0));
         specFactor = clamp(dot(halfDir, bumpNormal), 0.0, 1.0);
         specFactor = pow(specFactor, 60.0);
     }else if(IN.height < 0.1){
-        if(IN.height > 0.08){
+        if(IN.height > 0.055){
             diffuse = texture(forestTex, IN.texCoord);
             diffuse2 = texture(diffuseTex, IN.texCoord);
-            float difference = IN.height - 0.08;
-            a = (difference / 0.02);
+            float difference = IN.height - 0.055;
+            a = (difference / 0.045);
+            bumpNormal = mix(texture(forestBump, IN.texCoord).rgb, texture(bumpTex, IN.texCoord).rgb, a);
         }else{
             diffuse = texture(forestTex, IN.texCoord);
             diffuse2 = diffuse;
             a = 0;
+            bumpNormal = texture(forestBump, IN.texCoord).rgb;
         }
-        //diffuse = texture(forestTex, IN.texCoord);
-        bumpNormal = texture(forestBump, IN.texCoord).rgb;
         bumpNormal = normalize(TBN * normalize(bumpNormal * 2.0 - 1.0));
         specFactor = clamp(dot(halfDir, bumpNormal), 0.0, 1.0);
         specFactor = pow(specFactor, 70.0);
     }else if(IN.height < 0.4){
-        if(IN.height > 0.36){
+        if(IN.height > 0.30){
             diffuse = texture(diffuseTex, IN.texCoord);
             diffuse2 = texture(snowTex, IN.texCoord);
-            float difference = IN.height - 0.36;
-            a = (difference / 0.04);
+            float difference = IN.height - 0.30;
+            a = (difference / 0.1);
+            bumpNormal = mix(texture(bumpTex, IN.texCoord).rgb, texture(snowBump, IN.texCoord).rgb, a);
         }else{
             diffuse = texture(diffuseTex, IN.texCoord);
             diffuse2 = diffuse;
             a = 0;
+            bumpNormal = texture(bumpTex, IN.texCoord).rgb;
         }
-        //diffuse = texture(diffuseTex, IN.texCoord);
-        bumpNormal = texture(bumpTex, IN.texCoord).rgb;
         bumpNormal = normalize(TBN * normalize(bumpNormal * 2.0 - 1.0));
         specFactor = clamp(dot(halfDir, bumpNormal), 0.0, 1.0);
-        specFactor = pow(specFactor, 40.0);
+        specFactor = pow(specFactor, 30.0);
     }
     else{
         diffuse = texture(snowTex, IN.texCoord);
-        diffuse2 = texture(diffuseTex, IN.texCoord);
-        a = 0.5;
+        diffuse2 = texture(snowTex, IN.texCoord);
+        a = 1;
         bumpNormal = texture(snowBump, IN.texCoord).rgb;
         bumpNormal = normalize(TBN * normalize(bumpNormal * 2.0 - 1.0));
         specFactor = clamp(dot(halfDir, bumpNormal), 0.0, 1.0);
-        specFactor = pow(specFactor, 5.0);
+        specFactor = pow(specFactor, 30.0);
     }
 
     float lambert = max(dot(incident, bumpNormal), 0.0f); 

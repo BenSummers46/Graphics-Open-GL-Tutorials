@@ -6,13 +6,15 @@
 
 Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	quad = Mesh::GenerateQuad();
+	//plane = Mesh::GeneratePlane(128, 128);
 
 	heightMap = new HeightMap(TEXTUREDIR"Terrain_heightmap8.png");
+	waterMap = new HeightMap(TEXTUREDIR"WaterTerrain_heightmap8.png");
 	
 	earthTex = SOIL_load_OGL_texture(TEXTUREDIR "rocks.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	earthBump = SOIL_load_OGL_texture(TEXTUREDIR "rocks_normal.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	cubeMap = SOIL_load_OGL_cubemap(TEXTUREDIR"rusted_west.jpg", TEXTUREDIR"rusted_east.jpg", TEXTUREDIR"rusted_up.jpg", TEXTUREDIR"rusted_down.jpg", TEXTUREDIR"rusted_south.jpg",
-		TEXTUREDIR"rusted_north.jpg", SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
+	cubeMap = SOIL_load_OGL_cubemap(TEXTUREDIR"Space_right.png", TEXTUREDIR"Space_left.png", TEXTUREDIR"Space_up.png", TEXTUREDIR"Space_down.png", TEXTUREDIR"Space_back.png",
+		TEXTUREDIR"Space_front.png", SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
 
 	forestTex = SOIL_load_OGL_texture(TEXTUREDIR"forrest_ground.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	forestBump = SOIL_load_OGL_texture(TEXTUREDIR"forrest_ground_bump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
@@ -20,6 +22,7 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	coastBump = SOIL_load_OGL_texture(TEXTUREDIR"coast_sand_bump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	snowTex = SOIL_load_OGL_texture(TEXTUREDIR"snow2.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	snowBump = SOIL_load_OGL_texture(TEXTUREDIR"snow_bump2.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	//waterTex = SOIL_load_OGL_texture(TEXTUREDIR"water.tga", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
 	if (!earthTex || !earthBump || !cubeMap || !forestTex || !forestBump || !coastTex || !coastBump) {
 		return;
@@ -60,6 +63,7 @@ Renderer::~Renderer(void)	{
 	delete camera;
 	delete heightMap;
 	delete quad;
+	//delete plane;
 	delete skyboxShader;
 	delete lightShader;
 	delete light;

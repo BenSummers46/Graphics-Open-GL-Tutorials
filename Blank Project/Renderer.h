@@ -19,7 +19,9 @@ protected:
 	Shader* skyboxShader;
 
 	HeightMap* heightMap;
+	HeightMap* waterMap;
 	Mesh* quad;
+	//Mesh* plane;
 
 	Light* light;
 	Camera* camera;
@@ -33,5 +35,6 @@ protected:
 	GLuint coastBump;
 	GLuint snowTex;
 	GLuint snowBump;
+	//GLuint waterTex;
 
 };
