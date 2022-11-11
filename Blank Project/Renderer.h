@@ -1,5 +1,6 @@
 #pragma once
 #include "../NCLGL/OGLRenderer.h"
+#include "../nclgl/Frustum.h"
 
 class Camera;
 class Shader;
@@ -9,19 +10,22 @@ class Renderer : public OGLRenderer	{
 public:
 	Renderer(Window &parent);
 	 ~Renderer(void);
-	 void RenderScene()				override;
+	 void RenderScene()	  override;
 	 void UpdateScene(float msec)	override;
 protected:
 	void DrawHeightMap();
 	void DrawSkyBox();
+	void DrawWater();
+
+	float sceneTime;
 
 	Shader* lightShader;
 	Shader* skyboxShader;
+	Shader* waterShader;
 
 	HeightMap* heightMap;
 	HeightMap* waterMap;
 	Mesh* quad;
-	//Mesh* plane;
 
 	Light* light;
 	Camera* camera;
@@ -35,6 +39,8 @@ protected:
 	GLuint coastBump;
 	GLuint snowTex;
 	GLuint snowBump;
-	//GLuint waterTex;
+	//GLuint waterBump;
+
+	Frustum frameFrustum;
 
 };

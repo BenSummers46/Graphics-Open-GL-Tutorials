@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include <iostream>
 #include "../nclgl/Light.h"
 #include "../nclgl/HeightMap.h"
 #include "../nclgl/Shader.h"
@@ -6,15 +7,14 @@
 
 Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	quad = Mesh::GenerateQuad();
-	//plane = Mesh::GeneratePlane(128, 128);
 
 	heightMap = new HeightMap(TEXTUREDIR"Terrain_heightmap8.png");
 	waterMap = new HeightMap(TEXTUREDIR"WaterTerrain_heightmap8.png");
 	
 	earthTex = SOIL_load_OGL_texture(TEXTUREDIR "rocks.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	earthBump = SOIL_load_OGL_texture(TEXTUREDIR "rocks_normal.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	cubeMap = SOIL_load_OGL_cubemap(TEXTUREDIR"Space_right.png", TEXTUREDIR"Space_left.png", TEXTUREDIR"Space_up.png", TEXTUREDIR"Space_down.png", TEXTUREDIR"Space_back.png",
-		TEXTUREDIR"Space_front.png", SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
+	cubeMap = SOIL_load_OGL_cubemap(TEXTUREDIR"Space_left.png", TEXTUREDIR"Space_right.png", TEXTUREDIR"Space_up.png", TEXTUREDIR"Space_down.png", TEXTUREDIR"Space_front.png",
+		TEXTUREDIR"Space_back.png", SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
 
 	forestTex = SOIL_load_OGL_texture(TEXTUREDIR"forrest_ground.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	forestBump = SOIL_load_OGL_texture(TEXTUREDIR"forrest_ground_bump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
@@ -22,9 +22,9 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	coastBump = SOIL_load_OGL_texture(TEXTUREDIR"coast_sand_bump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	snowTex = SOIL_load_OGL_texture(TEXTUREDIR"snow2.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	snowBump = SOIL_load_OGL_texture(TEXTUREDIR"snow_bump2.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	//waterTex = SOIL_load_OGL_texture(TEXTUREDIR"water.tga", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	//waterBump = SOIL_load_OGL_texture(TEXTUREDIR"waterBump.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
-	if (!earthTex || !earthBump || !cubeMap || !forestTex || !forestBump || !coastTex || !coastBump) {
+	if (!earthTex || !earthBump || !cubeMap || !forestTex || !forestBump || !coastTex || !coastBump){ //|| !waterBump) {
 		return;
 	}
 
@@ -36,12 +36,14 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	SetTextureRepeating(coastBump, true);
 	SetTextureRepeating(snowTex, true);
 	SetTextureRepeating(snowBump, true);
+	//SetTextureRepeating(waterBump, true);
 
 	skyboxShader = new Shader("SkyboxVertex.glsl", "SkyboxFragment.glsl");
 	lightShader = new Shader("coursework/BumpBlendVertex.glsl", "coursework/BumpBlendFrag.glsl");
+	waterShader = new Shader("coursework/WaterVertex.glsl", "coursework/WaterFragment.glsl");
 	
 
-	if (!skyboxShader->LoadSuccess() || !lightShader->LoadSuccess()) {
+	if (!skyboxShader->LoadSuccess() || !lightShader->LoadSuccess() || !waterShader->LoadSuccess()) {
 		return;
 	}
 
@@ -57,27 +59,57 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
+	sceneTime = 0.0f;
+
 	init = true;
 }
 Renderer::~Renderer(void)	{
 	delete camera;
 	delete heightMap;
 	delete quad;
-	//delete plane;
 	delete skyboxShader;
 	delete lightShader;
+	delete waterShader;
 	delete light;
 }
 
 void Renderer::UpdateScene(float dt) {
 	camera->UpdateCamera(dt);
 	viewMatrix = camera->BuildViewMatrix();
+	frameFrustum.FromMatrix(projMatrix * viewMatrix);
+	
+	BindShader(waterShader);
+	sceneTime += dt;
+	glUniform1f(glGetUniformLocation(waterShader->GetProgram(), "time"), sceneTime);
 }
 
 void Renderer::RenderScene()	{
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	DrawSkyBox();
 	DrawHeightMap();
+	DrawWater();
+}
+
+void Renderer::DrawWater() {
+	BindShader(waterShader);
+
+	glUniform3fv(glGetUniformLocation(waterShader->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
+	
+	glUniform1i(glGetUniformLocation(waterShader->GetProgram(), "cubeTex"), 8);
+	glActiveTexture(GL_TEXTURE8);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
+
+	/*glUniform1i(glGetUniformLocation(waterShader->GetProgram(), "waterBump"), 9);
+	glActiveTexture(GL_TEXTURE9);
+	glBindTexture(GL_TEXTURE_2D, waterBump);*/
+	
+
+	Vector3 hSize = heightMap->GetHeightMapSize();
+	
+	modelMatrix = Matrix4::Translation(Vector3(hSize.x * 0.0f, hSize.y * 0.035f, hSize.z * 0.0f)) * Matrix4::Scale(hSize * 0.0001f) * Matrix4::Rotation(0, Vector3(1, 0, 0));
+
+	UpdateShaderMatrices();
+	waterMap->Draw();
 }
 
 void Renderer::DrawSkyBox() {
