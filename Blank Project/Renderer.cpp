@@ -15,7 +15,7 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 
 	LoadTextures();
 
-	if (!earthTex || !earthBump || !cubeMap || !forestTex || !forestBump || !coastTex || !coastBump || !waterBump || !towerTex || !towerBump || !mainTreeTex) {
+	if (!earthTex || !earthBump || !cubeMap || !forestTex || !forestBump || !coastTex || !coastBump || !towerTex || !towerBump || !mainTreeTex) {
 		return;
 	}
 
@@ -23,7 +23,6 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	SetTextureRepeating(forestTex, true); SetTextureRepeating(forestBump, true);
 	SetTextureRepeating(coastTex, true); SetTextureRepeating(coastBump, true);
 	SetTextureRepeating(snowTex, true); SetTextureRepeating(snowBump, true);
-	SetTextureRepeating(waterBump, true);
 	SetTextureRepeating(mainTreeTex, true);
 
 	skyboxShader = new Shader("SkyboxVertex.glsl", "SkyboxFragment.glsl");
@@ -82,7 +81,6 @@ void Renderer::LoadTextures() {
 	coastBump = SOIL_load_OGL_texture(TEXTUREDIR"coast_sand_bump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	snowTex = SOIL_load_OGL_texture(TEXTUREDIR"snow2.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	snowBump = SOIL_load_OGL_texture(TEXTUREDIR"snow_bump2.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	waterBump = SOIL_load_OGL_texture(TEXTUREDIR"waterBump.png", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	towerTex = SOIL_load_OGL_texture(TEXTUREDIR"RuinedTower_vcols.bmp", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	towerBump = SOIL_load_OGL_texture(TEXTUREDIR"RuinedTower_normals.bmp", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
@@ -146,16 +144,12 @@ void Renderer::DrawTower() {
 
 void Renderer::DrawWater() {
 	BindShader(waterShader);
-	//SetShaderLight(*light);
+
 	glUniform3fv(glGetUniformLocation(waterShader->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
 	
 	glUniform1i(glGetUniformLocation(waterShader->GetProgram(), "cubeTex"), 8);
 	glActiveTexture(GL_TEXTURE8);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-
-	/*glUniform1i(glGetUniformLocation(waterShader->GetProgram(), "waterBump"), 9);
-	glActiveTexture(GL_TEXTURE9);
-	glBindTexture(GL_TEXTURE_2D, waterBump);*/
 	
 
 	Vector3 hSize = heightMap->GetHeightMapSize();

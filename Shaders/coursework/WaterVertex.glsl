@@ -28,9 +28,7 @@ in vec2 texCoord;
 out Vertex {
     vec3 worldPos;
     vec3 normal;
-    //vec3 tangent;
-    //vec3 binormal;
-    //vec2 texCoord;
+    float height;
 } OUT;
 
 vec3 gerstner_normal(vec3 position, float time){
@@ -85,15 +83,15 @@ void main(void){
     vec3 newNorm = normal;
     vec3 vertPosition = gerstner_wave(position.xz, time, newNorm);
 
-    //OUT.texCoord = texCoord;
     
     mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
     OUT.normal = normalize(normalMatrix * normalize(newNorm));
-    //OUT.tangent = normalize(normal * normalize(tangent.xyz));
-    //OUT.binormal = cross(normalize(normalMatrix * normalize(newNorm)), normalize(normal * normalize(tangent.xyz))) * tangent.w;
+    
     
     vec4 worldPos = (modelMatrix * vec4(vertPosition, 1));
     OUT.worldPos = worldPos.xyz;
+
+    OUT.height = vertPosition.y;
 
     gl_Position = (projMatrix * viewMatrix) * worldPos;
 }

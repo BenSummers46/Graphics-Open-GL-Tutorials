@@ -46,7 +46,6 @@ protected:
 	GLuint coastBump;
 	GLuint snowTex;
 	GLuint snowBump;
-	GLuint waterBump;
 	GLuint towerTex;
 	GLuint towerBump;
 	GLuint mainTreeTex;
