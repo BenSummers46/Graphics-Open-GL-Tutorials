@@ -16,16 +16,23 @@ protected:
 	void DrawHeightMap();
 	void DrawSkyBox();
 	void DrawWater();
+	void DrawTower();
+	void DrawTree();
+	void LoadTextures();
 
 	float sceneTime;
 
 	Shader* lightShader;
 	Shader* skyboxShader;
 	Shader* waterShader;
+	Shader* towerShader;
+	Shader* mainTreeShader;
 
 	HeightMap* heightMap;
 	HeightMap* waterMap;
 	Mesh* quad;
+	Mesh* tower;
+	Mesh* tree;
 
 	Light* light;
 	Camera* camera;
@@ -39,7 +46,10 @@ protected:
 	GLuint coastBump;
 	GLuint snowTex;
 	GLuint snowBump;
-	//GLuint waterBump;
+	GLuint waterBump;
+	GLuint towerTex;
+	GLuint towerBump;
+	GLuint mainTreeTex;
 
 	Frustum frameFrustum;
 
