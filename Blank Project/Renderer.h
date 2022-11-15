@@ -5,6 +5,7 @@
 class Camera;
 class Shader;
 class HeightMap;
+class MeshAnimation;
 
 class Renderer : public OGLRenderer	{
 public:
@@ -42,6 +43,8 @@ protected:
 	Mesh* quad;
 	Mesh* tower;
 	Mesh* tree;
+	Mesh* wolf;
+	MeshAnimation* wolfAnim;
 
 	Light* light;
 	Camera* camera;

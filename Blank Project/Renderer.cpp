@@ -14,6 +14,9 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 
 	heightMap = new HeightMap(TEXTUREDIR"Terrain_heightmap8.png");
 	waterMap = new HeightMap(TEXTUREDIR"WaterTerrain_heightmap8.png");
+	
+	wolf = Mesh::LoadFromMeshFile("Wolf_walk.msh");
+	wolfAnim = new MeshAnimation("Wolf_walk.anm");
 
 	LoadTextures();
 
@@ -88,6 +91,8 @@ Renderer::~Renderer(void)	{
 	delete forestShader;
 	delete light;
 	delete treeRoot;
+	delete wolf;
+	delete wolfAnim;
 }
 
 void Renderer::LoadTextures() {
