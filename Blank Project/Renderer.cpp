@@ -5,6 +5,7 @@
 #include "../nclgl/Shader.h"
 #include "../nclgl/Camera.h"
 #include "../nclgl/SceneNode.h"
+#include "../nclgl/MeshAnimation.h"
 
 Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	quad = Mesh::GenerateQuad();
@@ -41,18 +42,18 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 
 	Vector3 heightmapSize = heightMap->GetHeightMapSize();
 
-	camera = new Camera(-45.0f, 0.0f, heightmapSize * Vector3(0.5f, 1.0f, 0.5f)); //was 5
-	light = new Light(heightmapSize * Vector3(1.0f, 1.5f, 1.0f), Vector4(1, 1, 1, 1), Vector4(1, 1, 1, 1), heightmapSize.x * 2); //was 20
+	camera = new Camera(-45.0f, 0.0f, heightmapSize * Vector3(0.5f, 1.0f, 0.5f)); 
+	light = new Light(heightmapSize * Vector3(0.4f, 1.3f, 1.0f), Vector4(1, 1, 1, 1), Vector4(1, 1, 1, 1), heightmapSize.x * 2); 
 
 	treeRoot = new SceneNode();
 	treeRoot->SetTransform(Matrix4::Translation(Vector3(heightmapSize.x * 0.75, heightmapSize.y * 0.06, heightmapSize.z * 0.35)));
 
-	for (int i = 0; i < 40; ++i) {
+	for (int i = 0; i < 50; ++i) {
 		SceneNode* s = new SceneNode();
 		s->SetColour(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-		s->SetTransform(Matrix4::Translation(Vector3(rand() % 1400 - (rand() % 300), 1, rand() % 2700 - (rand() % 200))));
-		s->SetModelScale(Vector3(20.0f, (rand() % 10) + 20, 20.0f));
-		s->SetBoundingRadius(200.0f);
+		s->SetTransform(Matrix4::Translation(Vector3(rand() % 1400 - (rand() % 300), 1, rand() % 2600 - (rand() % 200))));
+		s->SetModelScale(Vector3(20.0f, (rand() % 25) + 15, 20.0f)); 
+		s->SetBoundingRadius(500.0f);
 		s->SetMesh(tree);
 		s->SetTexture(mainTreeTex);
 		treeRoot->AddChild(s);
@@ -210,7 +211,7 @@ void Renderer::DrawTower() {
 
 	Vector3 hSize = heightMap->GetHeightMapSize();
 
-	modelMatrix = Matrix4::Translation(Vector3(hSize.x * 0.90f, hSize.y * 0.04f, hSize.z * 0.48f)) * Matrix4::Scale(Vector3(hSize.x * 0.009f, hSize.y * 0.02f, hSize.z * 0.009f)) * Matrix4::Rotation(125, Vector3(0, 1, 0));
+	modelMatrix = Matrix4::Translation(Vector3(hSize.x * 0.77f, hSize.y * 0.04f, hSize.z * 0.57f)) * Matrix4::Scale(Vector3(hSize.x * 0.009f, hSize.y * 0.02f, hSize.z * 0.009f)) * Matrix4::Rotation(85, Vector3(0, 1, 0)); 
 
 	UpdateShaderMatrices();
 	tower->Draw();
