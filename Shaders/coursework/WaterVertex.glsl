@@ -1,8 +1,11 @@
 #version 330 core
 
+layout (std140) uniform matrices {
+    uniform mat4 projMatrix;
+    uniform mat4 viewMatrix;
+};
+
 uniform mat4 modelMatrix;
-uniform mat4 viewMatrix;
-uniform mat4 projMatrix;
 uniform float time;
 
 uniform int wave_amount = 4;

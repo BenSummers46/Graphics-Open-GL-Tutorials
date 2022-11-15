@@ -19,6 +19,14 @@ protected:
 	void DrawTower();
 	void DrawTree();
 	void LoadTextures();
+	void CreateMatrixUBO();
+	void DrawForest();
+
+	void BuildNodeLists(SceneNode* from);
+	void SortNodeLists();
+	void DrawNode(SceneNode* n);
+	void DrawNodes();
+	void ClearNodeLists();
 
 	float sceneTime;
 
@@ -27,6 +35,7 @@ protected:
 	Shader* waterShader;
 	Shader* towerShader;
 	Shader* mainTreeShader;
+	Shader* forestShader;
 
 	HeightMap* heightMap;
 	HeightMap* waterMap;
@@ -36,6 +45,7 @@ protected:
 
 	Light* light;
 	Camera* camera;
+	SceneNode* treeRoot;
 
 	GLuint cubeMap;
 	GLuint earthTex;
@@ -51,5 +61,8 @@ protected:
 	GLuint mainTreeTex;
 
 	Frustum frameFrustum;
+
+	unsigned int uboMatrix;
+	vector<SceneNode*> nodeList;
 
 };

@@ -4,6 +4,7 @@
 #include "../nclgl/HeightMap.h"
 #include "../nclgl/Shader.h"
 #include "../nclgl/Camera.h"
+#include "../nclgl/SceneNode.h"
 
 Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	quad = Mesh::GenerateQuad();
@@ -30,9 +31,11 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	waterShader = new Shader("coursework/WaterVertex.glsl", "coursework/WaterFragment.glsl");
 	towerShader = new Shader("coursework/TowerVertex.glsl", "coursework/TowerFragment.glsl");
 	mainTreeShader = new Shader("coursework/TreeVertex.glsl", "coursework/TreeFragment.glsl");
+	forestShader = new Shader("coursework/ForestVertex.glsl", "coursework/ForestFragment.glsl");
 	
 
-	if (!skyboxShader->LoadSuccess() || !lightShader->LoadSuccess() || !waterShader->LoadSuccess() || !towerShader->LoadSuccess() || !mainTreeShader->LoadSuccess()) {
+	if (!skyboxShader->LoadSuccess() || !lightShader->LoadSuccess() || !waterShader->LoadSuccess() || !towerShader->LoadSuccess() || !mainTreeShader->LoadSuccess() ||
+		!forestShader->LoadSuccess()) {
 		return;
 	}
 
@@ -40,6 +43,20 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 
 	camera = new Camera(-45.0f, 0.0f, heightmapSize * Vector3(0.5f, 1.0f, 0.5f)); //was 5
 	light = new Light(heightmapSize * Vector3(1.0f, 1.5f, 1.0f), Vector4(1, 1, 1, 1), Vector4(1, 1, 1, 1), heightmapSize.x * 2); //was 20
+
+	treeRoot = new SceneNode();
+	treeRoot->SetTransform(Matrix4::Translation(Vector3(heightmapSize.x * 0.75, heightmapSize.y * 0.06, heightmapSize.z * 0.35)));
+
+	for (int i = 0; i < 40; ++i) {
+		SceneNode* s = new SceneNode();
+		s->SetColour(Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+		s->SetTransform(Matrix4::Translation(Vector3(rand() % 1400 - (rand() % 300), 1, rand() % 2700 - (rand() % 200))));
+		s->SetModelScale(Vector3(20.0f, (rand() % 10) + 20, 20.0f));
+		s->SetBoundingRadius(200.0f);
+		s->SetMesh(tree);
+		s->SetTexture(mainTreeTex);
+		treeRoot->AddChild(s);
+	}
 
 	projMatrix = Matrix4::Perspective(1.0f, 20000.0f, (float)width / (float)height, 45.0f);
 
@@ -51,6 +68,7 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	sceneTime = 0.0f;
+	CreateMatrixUBO();
 
 	init = true;
 }
@@ -66,21 +84,23 @@ Renderer::~Renderer(void)	{
 	delete waterShader;
 	delete towerShader;
 	delete mainTreeShader;
+	delete forestShader;
 	delete light;
+	delete treeRoot;
 }
 
 void Renderer::LoadTextures() {
-	earthTex = SOIL_load_OGL_texture(TEXTUREDIR "rocks.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	earthBump = SOIL_load_OGL_texture(TEXTUREDIR "rocks_normal.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	earthTex = SOIL_load_OGL_texture(TEXTUREDIR "rocks1k.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	earthBump = SOIL_load_OGL_texture(TEXTUREDIR "rocks1knormal.JPG", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	cubeMap = SOIL_load_OGL_cubemap(TEXTUREDIR"Space_left.png", TEXTUREDIR"Space_right.png", TEXTUREDIR"Space_up.png", TEXTUREDIR"Space_down.png", TEXTUREDIR"Space_front.png",
 		TEXTUREDIR"Space_back.png", SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
 
-	forestTex = SOIL_load_OGL_texture(TEXTUREDIR"forrest_ground.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	forestBump = SOIL_load_OGL_texture(TEXTUREDIR"forrest_ground_bump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	forestTex = SOIL_load_OGL_texture(TEXTUREDIR"forest1k.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	forestBump = SOIL_load_OGL_texture(TEXTUREDIR"forest1knormal.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	coastTex = SOIL_load_OGL_texture(TEXTUREDIR"coast_sand.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	coastBump = SOIL_load_OGL_texture(TEXTUREDIR"coast_sand_bump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	snowTex = SOIL_load_OGL_texture(TEXTUREDIR"snow2.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	snowBump = SOIL_load_OGL_texture(TEXTUREDIR"snow_bump2.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	snowTex = SOIL_load_OGL_texture(TEXTUREDIR"snow1k.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	snowBump = SOIL_load_OGL_texture(TEXTUREDIR"snow1knormal.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	towerTex = SOIL_load_OGL_texture(TEXTUREDIR"RuinedTower_vcols.bmp", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	towerBump = SOIL_load_OGL_texture(TEXTUREDIR"RuinedTower_normals.bmp", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
@@ -90,6 +110,11 @@ void Renderer::LoadTextures() {
 void Renderer::UpdateScene(float dt) {
 	camera->UpdateCamera(dt);
 	viewMatrix = camera->BuildViewMatrix();
+	treeRoot->Update(dt);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrix);
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(Matrix4), sizeof(Matrix4), viewMatrix.values) ;
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
 	
 	BindShader(waterShader);
@@ -104,6 +129,55 @@ void Renderer::RenderScene()	{
 	DrawWater();
 	DrawTower();
 	DrawTree();
+	DrawForest();
+}
+
+void Renderer::DrawForest() {
+	BuildNodeLists(treeRoot);
+	SortNodeLists();
+	BindShader(forestShader);
+	UpdateShaderMatrices();
+	DrawNodes();
+	ClearNodeLists();
+}
+
+void Renderer::ClearNodeLists() {
+	nodeList.clear();
+}
+
+void Renderer::DrawNode(SceneNode* n) {
+	if (n->GetMesh()) {
+		Matrix4 model = n->GetWorldTransform() * Matrix4::Scale(n->GetModelScale());
+		glUniformMatrix4fv(glGetUniformLocation(forestShader->GetProgram(), "modelMatrix"), 1, false, model.values);
+
+		glUniform1i(glGetUniformLocation(forestShader->GetProgram(), "diffuseTex"), 0);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, n->GetTextures());
+
+		n->Draw(*this);
+	}
+}
+
+void Renderer::DrawNodes() {
+	for (const auto& i : nodeList) {
+		DrawNode(i);
+	}
+}
+
+void Renderer::SortNodeLists() {
+	std::sort(nodeList.begin(), nodeList.end(), SceneNode::CompareByCameraDistance);
+}
+
+void Renderer::BuildNodeLists(SceneNode* from) {
+	if (frameFrustum.InsideFrustum(*from)) {
+		Vector3 dir = from->GetWorldTransform().GetPositionVector() - camera->GetPosition();
+		from->SetCameraDistance(Vector3::Dot(dir, dir));
+		nodeList.push_back(from);
+	}
+
+	for (vector<SceneNode*>::const_iterator i = from->GetChildIteratorStart(); i != from->GetChildIteratorEnd(); ++i) {
+		BuildNodeLists(*i);
+	}
 }
 
 void Renderer::DrawTree() {
@@ -136,7 +210,7 @@ void Renderer::DrawTower() {
 
 	Vector3 hSize = heightMap->GetHeightMapSize();
 
-	modelMatrix = Matrix4::Translation(Vector3(hSize.x * 0.85f, hSize.y * 0.05f, hSize.z * 0.48f)) * Matrix4::Scale(Vector3(hSize.x * 0.007f, hSize.y * 0.012f, hSize.z * 0.007f)) * Matrix4::Rotation(125, Vector3(0, 1, 0));
+	modelMatrix = Matrix4::Translation(Vector3(hSize.x * 0.90f, hSize.y * 0.04f, hSize.z * 0.48f)) * Matrix4::Scale(Vector3(hSize.x * 0.009f, hSize.y * 0.02f, hSize.z * 0.009f)) * Matrix4::Rotation(125, Vector3(0, 1, 0));
 
 	UpdateShaderMatrices();
 	tower->Draw();
@@ -145,6 +219,8 @@ void Renderer::DrawTower() {
 void Renderer::DrawWater() {
 	BindShader(waterShader);
 
+	glGetUniformBlockIndex(waterShader->GetProgram(), "Uniforms");
+	
 	glUniform3fv(glGetUniformLocation(waterShader->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
 	
 	glUniform1i(glGetUniformLocation(waterShader->GetProgram(), "cubeTex"), 8);
@@ -215,5 +291,23 @@ void Renderer::DrawHeightMap() {
 	UpdateShaderMatrices();
 
 	heightMap->Draw();
+}
+
+void Renderer::CreateMatrixUBO() {
+	glGenBuffers(1, &uboMatrix);
+	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrix);
+	glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(Matrix4), projMatrix.values, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	unsigned int block_index = glGetUniformBlockIndex(mainTreeShader->GetProgram(), "matrices");
+	unsigned int water_index = glGetUniformBlockIndex(waterShader->GetProgram(), "matrices");
+	unsigned int land_index = glGetUniformBlockIndex(lightShader->GetProgram(), "matrices");
+	
+	glBindBufferBase(GL_UNIFORM_BUFFER, 1, uboMatrix);
+	glUniformBlockBinding(mainTreeShader->GetProgram(), block_index, 1);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 2, uboMatrix);
+	glUniformBlockBinding(waterShader->GetProgram(), water_index, 2);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 3, uboMatrix);
+	glUniformBlockBinding(lightShader->GetProgram(), land_index, 3);
 }
 
