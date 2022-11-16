@@ -15,12 +15,14 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	heightMap = new HeightMap(TEXTUREDIR"Terrain_heightmap8.png");
 	waterMap = new HeightMap(TEXTUREDIR"WaterTerrain_heightmap8.png");
 	
-	wolf = Mesh::LoadFromMeshFile("Wolf_walk.msh");
-	wolfAnim = new MeshAnimation("Wolf_walk.anm");
+	/*wolf = Mesh::LoadFromMeshFile("Wolf_walk.msh");
+	wolfAnim = new MeshAnimation("Wolf_walk.anm");*/
+	wolf = Mesh::LoadFromMeshFile("Role_T.msh");
+	wolfAnim = new MeshAnimation("Role_T.anm");
 
 	LoadTextures();
 
-	if (!earthTex || !earthBump || !cubeMap || !forestTex || !forestBump || !coastTex || !coastBump || !towerTex || !towerBump || !mainTreeTex) {
+	if (!earthTex || !earthBump || !cubeMap || !forestTex || !forestBump || !coastTex || !coastBump || !towerTex || !towerBump || !mainTreeTex || !wolfTex) {
 		return;
 	}
 
@@ -36,10 +38,10 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	towerShader = new Shader("coursework/TowerVertex.glsl", "coursework/TowerFragment.glsl");
 	mainTreeShader = new Shader("coursework/TreeVertex.glsl", "coursework/TreeFragment.glsl");
 	forestShader = new Shader("coursework/ForestVertex.glsl", "coursework/ForestFragment.glsl");
-	
+	wolfShader = new Shader("coursework/AnimationVertex.glsl", "coursework/TexturedWolf.glsl");
 
 	if (!skyboxShader->LoadSuccess() || !lightShader->LoadSuccess() || !waterShader->LoadSuccess() || !towerShader->LoadSuccess() || !mainTreeShader->LoadSuccess() ||
-		!forestShader->LoadSuccess()) {
+		!forestShader->LoadSuccess() || !wolfShader->LoadSuccess()) {
 		return;
 	}
 
@@ -72,6 +74,8 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	sceneTime = 0.0f;
+	currentFrame = 0;
+	frameTime = 0.0f;
 	CreateMatrixUBO();
 
 	init = true;
@@ -111,6 +115,7 @@ void Renderer::LoadTextures() {
 	towerBump = SOIL_load_OGL_texture(TEXTUREDIR"RuinedTower_normals.bmp", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 
 	mainTreeTex = SOIL_load_OGL_texture(TEXTUREDIR"stainedglass.tga", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	wolfTex = SOIL_load_OGL_texture(TEXTUREDIR"Wolf_Albedo.tga", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
 }
 
 void Renderer::UpdateScene(float dt) {
@@ -122,6 +127,12 @@ void Renderer::UpdateScene(float dt) {
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(Matrix4), sizeof(Matrix4), viewMatrix.values) ;
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
+
+	frameTime -= dt;
+	while (frameTime < 0.0f) {
+		currentFrame = (currentFrame + 1) % wolfAnim->GetFrameCount();
+		frameTime += 1.0f / wolfAnim->GetFrameRate();
+	}
 	
 	BindShader(waterShader);
 	sceneTime += dt;
@@ -136,6 +147,38 @@ void Renderer::RenderScene()	{
 	DrawTower();
 	DrawTree();
 	DrawForest();
+	DrawWolf();
+}
+
+void Renderer::DrawWolf() {
+	BindShader(wolfShader);
+	Vector3 hSize = heightMap->GetHeightMapSize();
+
+	modelMatrix = Matrix4::Translation(Vector3(hSize.x * 0.5, hSize.y * 0.5f, hSize.z * 0.5f)) * Matrix4::Scale(Vector3(100, 100, 100)) * Matrix4::Rotation(0, Vector3(0, 0, 0));
+	glUniform1i(glGetUniformLocation(wolfShader->GetProgram(), "diffuseTex"), 0);
+	UpdateShaderMatrices();
+
+	vector<Matrix4> frameMatrices;
+	const Matrix4* invBindPose = wolf->GetInverseBindPose();
+	const Matrix4* frameData = wolfAnim->GetJointData(currentFrame);
+
+	for (unsigned int i = 0; i < wolf->GetJointCount(); ++i) {
+		frameMatrices.emplace_back(frameData[i] * invBindPose[i]);
+	}
+
+	int j = glGetUniformLocation(wolfShader->GetProgram(), "joints");
+	glUniformMatrix4fv(j, frameMatrices.size(), false, (float*)frameMatrices.data());
+
+	for (int i = 0; i < wolf->GetSubMeshCount(); ++i) {
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, mainTreeTex);
+
+		wolf->DrawSubMesh(i);
+	}
+	/*glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, wolfTex);
+
+	wolf->Draw();*/
 }
 
 void Renderer::DrawForest() {

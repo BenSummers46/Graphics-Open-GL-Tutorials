@@ -22,6 +22,7 @@ protected:
 	void LoadTextures();
 	void CreateMatrixUBO();
 	void DrawForest();
+	void DrawWolf();
 
 	void BuildNodeLists(SceneNode* from);
 	void SortNodeLists();
@@ -37,6 +38,7 @@ protected:
 	Shader* towerShader;
 	Shader* mainTreeShader;
 	Shader* forestShader;
+	Shader* wolfShader;
 
 	HeightMap* heightMap;
 	HeightMap* waterMap;
@@ -62,10 +64,14 @@ protected:
 	GLuint towerTex;
 	GLuint towerBump;
 	GLuint mainTreeTex;
+	GLuint wolfTex;
 
 	Frustum frameFrustum;
 
 	unsigned int uboMatrix;
 	vector<SceneNode*> nodeList;
+
+	int currentFrame;
+	float frameTime;
 
 };
