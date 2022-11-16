@@ -22,7 +22,7 @@ protected:
 	void LoadTextures();
 	void CreateMatrixUBO();
 	void DrawForest();
-	void DrawWolf();
+	void DrawAnimation();
 
 	void BuildNodeLists(SceneNode* from);
 	void SortNodeLists();
@@ -38,15 +38,15 @@ protected:
 	Shader* towerShader;
 	Shader* mainTreeShader;
 	Shader* forestShader;
-	Shader* wolfShader;
+	Shader* animShader;
 
 	HeightMap* heightMap;
 	HeightMap* waterMap;
 	Mesh* quad;
 	Mesh* tower;
 	Mesh* tree;
-	Mesh* wolf;
-	MeshAnimation* wolfAnim;
+	Mesh* animMesh;
+	MeshAnimation* animation;
 
 	Light* light;
 	Camera* camera;
@@ -64,7 +64,7 @@ protected:
 	GLuint towerTex;
 	GLuint towerBump;
 	GLuint mainTreeTex;
-	GLuint wolfTex;
+	GLuint animTex;
 
 	Frustum frameFrustum;
 
@@ -73,5 +73,5 @@ protected:
 
 	int currentFrame;
 	float frameTime;
-
+	float spiderMove;
 };
