@@ -24,6 +24,7 @@ protected:
 	void DrawForest();
 	void DrawAnimation();
 	void GenerateBuffers();
+	void DrawPostProcess();
 
 	void BuildNodeLists(SceneNode* from);
 	void SortNodeLists();
