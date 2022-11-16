@@ -7,6 +7,8 @@
 #include "../nclgl/SceneNode.h"
 #include "../nclgl/MeshAnimation.h"
 
+const int POST_PASSES = 10;
+
 Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	quad = Mesh::GenerateQuad();
 	tower = Mesh::LoadFromMeshFile("RuinedTower.msh");
@@ -37,9 +39,10 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	mainTreeShader = new Shader("coursework/TreeVertex.glsl", "coursework/TreeFragment.glsl");
 	forestShader = new Shader("coursework/ForestVertex.glsl", "coursework/ForestFragment.glsl");
 	animShader = new Shader("coursework/AnimationVertex.glsl", "coursework/TexturedWolf.glsl");
+	processShader = new Shader("TexturedVertex.glsl", "ProcessFrag.glsl");
 
 	if (!skyboxShader->LoadSuccess() || !lightShader->LoadSuccess() || !waterShader->LoadSuccess() || !towerShader->LoadSuccess() || !mainTreeShader->LoadSuccess() ||
-		!forestShader->LoadSuccess() || !animShader->LoadSuccess()) {
+		!forestShader->LoadSuccess() || !animShader->LoadSuccess() || !processShader->LoadSuccess()) {
 		return;
 	}
 
@@ -76,6 +79,7 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	frameTime = 0.0f;
 	spiderMove = 0.65f;
 	CreateMatrixUBO();
+	GenerateBuffers();
 
 	init = true;
 }
@@ -92,10 +96,16 @@ Renderer::~Renderer(void)	{
 	delete towerShader;
 	delete mainTreeShader;
 	delete forestShader;
+	delete processShader;
+	delete animShader;
 	delete light;
 	delete treeRoot;
 	delete animMesh;
 	delete animation;
+}
+
+void Renderer::GenerateBuffers() {
+	//glGenTextures()
 }
 
 void Renderer::LoadTextures() {

@@ -23,6 +23,7 @@ protected:
 	void CreateMatrixUBO();
 	void DrawForest();
 	void DrawAnimation();
+	void GenerateBuffers();
 
 	void BuildNodeLists(SceneNode* from);
 	void SortNodeLists();
@@ -39,6 +40,7 @@ protected:
 	Shader* mainTreeShader;
 	Shader* forestShader;
 	Shader* animShader;
+	Shader* processShader;
 
 	HeightMap* heightMap;
 	HeightMap* waterMap;
@@ -67,6 +69,10 @@ protected:
 	GLuint animTex;
 
 	Frustum frameFrustum;
+	GLuint bufferFBO;
+	GLuint processFBO;
+	GLuint bufferColourTex[2];
+	GLuint bufferDepthTex;
 
 	unsigned int uboMatrix;
 	vector<SceneNode*> nodeList;
