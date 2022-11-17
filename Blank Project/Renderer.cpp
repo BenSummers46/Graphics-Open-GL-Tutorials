@@ -51,7 +51,7 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	Vector3 heightmapSize = heightMap->GetHeightMapSize();
 
 	camera = new Camera(-45.0f, 0.0f, heightmapSize * Vector3(0.5f, 1.0f, 0.5f)); 
-	light = new Light(heightmapSize * Vector3(0.4f, 1.3f, 0.8f), Vector4(1, 1, 1, 1), Vector4(1, 1, 1, 1), heightmapSize.x * 2);  //Vector3(0.4f, 1.3f, 1.0f)
+	light = new Light(heightmapSize * Vector3(0.4f, 1.3f, 0.8f), Vector4(1, 1, 1, 1), Vector4(1, 1, 1, 1), heightmapSize.x * 2);  
 
 	treeRoot = new SceneNode();
 	treeRoot->SetTransform(Matrix4::Translation(Vector3(heightmapSize.x * 0.75, heightmapSize.y * 0.06, heightmapSize.z * 0.35)));
@@ -234,7 +234,7 @@ void Renderer::DrawShadowScene() {
 	BindShader(shadowShader);
 
 	viewMatrix = Matrix4::BuildViewMatrix(light->GetPosition(), Vector3(heightMap->GetHeightMapSize().x * 0.7, heightMap->GetHeightMapSize().y * 0.1, heightMap->GetHeightMapSize().z * 0.4));
-	projMatrix = Matrix4::Perspective(1000, 7500, 1, 45);
+	projMatrix = Matrix4::Perspective(1000, 7500, (float)width / (float)height, 60); 
 	shadowMatrix = projMatrix * viewMatrix;
 
 	UpdateShaderMatrices();
