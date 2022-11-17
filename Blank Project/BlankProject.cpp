@@ -22,6 +22,9 @@ int main()	{
 		if (Window::GetKeyboard()->KeyDown(KEYBOARD_F5)) {
 			Shader::ReloadAllShaders();
 		}
+		if (Window::GetKeyboard()->KeyDown(KEYBOARD_B)) {
+			renderer.ToggleBlur();
+		}
 	}
 	return 0;
 }

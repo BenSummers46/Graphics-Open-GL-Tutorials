@@ -13,6 +13,7 @@ public:
 	 ~Renderer(void);
 	 void RenderScene()	  override;
 	 void UpdateScene(float msec)	override;
+	 void ToggleBlur();
 protected:
 	void DrawHeightMap();
 	void DrawSkyBox();
@@ -25,6 +26,8 @@ protected:
 	void DrawAnimation();
 	void GenerateBuffers();
 	void DrawPostProcess();
+	void PresentScene();
+	void DrawScene();
 
 	void BuildNodeLists(SceneNode* from);
 	void SortNodeLists();
@@ -42,6 +45,7 @@ protected:
 	Shader* forestShader;
 	Shader* animShader;
 	Shader* processShader;
+	Shader* sceneShader;
 
 	HeightMap* heightMap;
 	HeightMap* waterMap;
@@ -81,4 +85,5 @@ protected:
 	int currentFrame;
 	float frameTime;
 	float spiderMove;
+	int POST_PASSES;
 };

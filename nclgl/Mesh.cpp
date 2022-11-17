@@ -134,39 +134,6 @@ Mesh* Mesh::GenerateTriangle() {
 
 }
 
-//Mesh* Mesh::GeneratePlane(int size, int fidelity) {
-//	Mesh* m = new Mesh();
-//	m->numVertices = (fidelity * fidelity);
-//
-//	m->vertices = new Vector3[m->numVertices];
-//	m->textureCoords = new Vector2[m->numVertices];
-//	m->colours = new Vector4[m->numVertices];
-//	int vertexCount = 0;
-//
-//	for (int i = 0; i < fidelity + 1; ++i) {
-//		for (int j = 0; j < fidelity + 1; ++j) {
-//			float x = -size * 0.5f + size * (i / ((float)fidelity));
-//			float y = -size * 0.5f + size * (j / ((float)fidelity));
-//			m->vertices[vertexCount] = Vector3(x, 0, y);
-//			m->textureCoords[vertexCount] = Vector2(i / (float)fidelity, j / (float)fidelity);
-//			vertexCount++;
-//		}
-//	}
-//
-//	m->normals = new Vector3[m->numVertices];
-//	m->tangents = new Vector4[m->numVertices];
-//
-//	for (int i = 0; i < fidelity + 1; ++i) {
-//		m->colours[i] = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
-//		m->normals[i] = Vector3(0.0f, 1.0f, 0.0f);
-//		m->tangents[i] = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
-//	}
-//
-//	m->BufferData();
-//
-//	return m;
-//}
-
 Mesh* Mesh::GenerateQuad() {
 	Mesh* m = new Mesh();
 	m->numVertices = 4;

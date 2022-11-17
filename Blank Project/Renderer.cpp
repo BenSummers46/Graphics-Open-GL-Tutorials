@@ -7,8 +7,6 @@
 #include "../nclgl/SceneNode.h"
 #include "../nclgl/MeshAnimation.h"
 
-const int POST_PASSES = 10;
-
 Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	quad = Mesh::GenerateQuad();
 	tower = Mesh::LoadFromMeshFile("RuinedTower.msh");
@@ -40,9 +38,10 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	forestShader = new Shader("coursework/ForestVertex.glsl", "coursework/ForestFragment.glsl");
 	animShader = new Shader("coursework/AnimationVertex.glsl", "coursework/TexturedWolf.glsl");
 	processShader = new Shader("TexturedVertex.glsl", "ProcessFrag.glsl");
+	sceneShader = new Shader("TexturedVertex.glsl", "TexturedFragment.glsl");
 
 	if (!skyboxShader->LoadSuccess() || !lightShader->LoadSuccess() || !waterShader->LoadSuccess() || !towerShader->LoadSuccess() || !mainTreeShader->LoadSuccess() ||
-		!forestShader->LoadSuccess() || !animShader->LoadSuccess() || !processShader->LoadSuccess()) {
+		!forestShader->LoadSuccess() || !animShader->LoadSuccess() || !processShader->LoadSuccess() || !sceneShader->LoadSuccess()) {
 		return;
 	}
 
@@ -78,6 +77,7 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	currentFrame = 0;
 	frameTime = 0.0f;
 	spiderMove = 0.65f;
+	POST_PASSES = 0;
 	CreateMatrixUBO();
 	GenerateBuffers();
 
@@ -97,6 +97,7 @@ Renderer::~Renderer(void)	{
 	delete mainTreeShader;
 	delete forestShader;
 	delete processShader;
+	delete sceneShader;
 	delete animShader;
 	delete light;
 	delete treeRoot;
@@ -164,6 +165,7 @@ void Renderer::LoadTextures() {
 void Renderer::UpdateScene(float dt) {
 	camera->UpdateCamera(dt);
 	viewMatrix = camera->BuildViewMatrix();
+	projMatrix = Matrix4::Perspective(1.0f, 20000.0f, (float)width / (float)height, 45.0f);
 	treeRoot->Update(dt);
 
 	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrix);
@@ -183,6 +185,23 @@ void Renderer::UpdateScene(float dt) {
 }
 
 void Renderer::RenderScene()	{
+	DrawScene();
+
+	DrawPostProcess();
+	PresentScene();
+}
+
+void Renderer::ToggleBlur() {
+	if (POST_PASSES == 0) {
+		POST_PASSES = 10;
+	}
+	else {
+		POST_PASSES = 0;
+	}
+}
+
+void Renderer::DrawScene() {
+	glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	DrawSkyBox();
 	DrawHeightMap();
@@ -191,6 +210,7 @@ void Renderer::RenderScene()	{
 	DrawTree();
 	DrawForest();
 	DrawAnimation();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Renderer::DrawPostProcess() {
@@ -215,7 +235,29 @@ void Renderer::DrawPostProcess() {
 
 		glBindTexture(GL_TEXTURE_2D, bufferColourTex[0]);
 		quad->Draw();
+
+		glUniform1i(glGetUniformLocation(processShader->GetProgram(), "isVertical"), 1);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferColourTex[0], 0);
+		glBindTexture(GL_TEXTURE_2D, bufferColourTex[1]);
+		quad->Draw();
 	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glEnable(GL_DEPTH_TEST);
+}
+
+void Renderer::PresentScene() {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	BindShader(sceneShader);
+	modelMatrix.ToIdentity();
+	viewMatrix.ToIdentity();
+	projMatrix.ToIdentity();
+	UpdateShaderMatrices();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, bufferColourTex[0]);
+	glUniform1i(glGetUniformLocation(sceneShader->GetProgram(), "diffuseTex"), 0);
+	quad->Draw();
 }
 
 void Renderer::DrawAnimation() {

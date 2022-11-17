@@ -9,12 +9,12 @@ in Vertex{
 
 out vec4 fragColour;
 
-void main2(void){
+void main(void){
     
     fragColour = texture(diffuseTex, IN.texCoord);
     
 }
 
-void main(void){
+void main2(void){
    fragColour = IN.weights;
 }

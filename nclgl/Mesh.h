@@ -41,7 +41,6 @@ enum MeshBuffer {
 
 class Mesh	{
 public:	
-	/*static Mesh* GeneratePlane(int size, int fidelity);*/
 	static Mesh* GenerateTriangle();
 	static Mesh* GenerateQuad();
 	
