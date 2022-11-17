@@ -1,7 +1,10 @@
 #version 330 core
 
-uniform mat4 projMatrix;
-uniform mat4 viewMatrix;
+layout (std140) uniform matrices{
+    uniform mat4 projMatrix;
+    uniform mat4 viewMatrix;
+};
+
 uniform mat4 modelMatrix;
 
 in vec3 position;

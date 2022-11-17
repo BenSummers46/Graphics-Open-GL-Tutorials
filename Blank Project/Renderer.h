@@ -6,6 +6,7 @@ class Camera;
 class Shader;
 class HeightMap;
 class MeshAnimation;
+class Mesh;
 
 class Renderer : public OGLRenderer	{
 public:

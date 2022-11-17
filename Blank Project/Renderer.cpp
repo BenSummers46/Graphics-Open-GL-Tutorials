@@ -463,6 +463,7 @@ void Renderer::CreateMatrixUBO() {
 	unsigned int block_index = glGetUniformBlockIndex(mainTreeShader->GetProgram(), "matrices");
 	unsigned int water_index = glGetUniformBlockIndex(waterShader->GetProgram(), "matrices");
 	unsigned int land_index = glGetUniformBlockIndex(lightShader->GetProgram(), "matrices");
+	unsigned int forest_index = glGetUniformBlockIndex(forestShader->GetProgram(), "matrices");
 	
 	glBindBufferBase(GL_UNIFORM_BUFFER, 1, uboMatrix);
 	glUniformBlockBinding(mainTreeShader->GetProgram(), block_index, 1);
@@ -470,5 +471,7 @@ void Renderer::CreateMatrixUBO() {
 	glUniformBlockBinding(waterShader->GetProgram(), water_index, 2);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 3, uboMatrix);
 	glUniformBlockBinding(lightShader->GetProgram(), land_index, 3);
+	glBindBufferBase(GL_UNIFORM_BUFFER, 4, uboMatrix);
+	glUniformBlockBinding(forestShader->GetProgram(), forest_index, 4);
 }
 
