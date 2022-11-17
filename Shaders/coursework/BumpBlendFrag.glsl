@@ -8,6 +8,7 @@ uniform sampler2D coastTex;
 uniform sampler2D coastBump;
 uniform sampler2D snowTex;
 uniform sampler2D snowBump;
+uniform sampler2D shadowTex;
 
 uniform vec3 cameraPos;
 uniform vec4 lightColour;
@@ -23,6 +24,7 @@ in Vertex {
     vec3 binormal;
     vec3 worldPos;
     float height;
+    vec4 shadowProj;
 } IN;
 
 out vec4 fragColour;
@@ -103,9 +105,20 @@ void main(void){
     float distance = length(lightPos - IN.worldPos);
     float attenuation = 1.0f - clamp(distance / lightRadius, 0.0, 1.0);
 
+    float shadow = 1.0;
+    vec3 shadowNDC = IN.shadowProj.xyz / IN.shadowProj.w;
+    if(abs(shadowNDC.x) < 1.0f && abs(shadowNDC.y) < 1.0f && abs(shadowNDC.z) < 1.0f){
+        vec3 biasCoord = shadowNDC * 0.5f + 0.5f;
+        float shadowZ = texture(shadowTex, biasCoord.xy).x;
+        if(shadowZ < biasCoord.z){
+            shadow = 0.0f;
+        }
+    }
+
     vec3 surface = (mix(diffuse.rgb, diffuse2.rgb, a) * lightColour.rgb);
     fragColour.rgb = surface * lambert * attenuation;
     fragColour.rgb += (specularColour.rgb * specFactor) * attenuation * 0.33;
+    fragColour.rgb *= shadow;
     fragColour.rgb += surface * 0.1f;
     fragColour.a = diffuse.a;
 }

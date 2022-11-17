@@ -8,6 +8,9 @@ layout (std140) uniform matrices{
 uniform mat4 modelMatrix;
 uniform float terrainHeight;
 
+uniform vec3 lightPos;
+uniform mat4 shadowMatrix;
+
 in vec3 position;
 in vec4 colour;
 in vec3 normal;
@@ -22,6 +25,7 @@ out Vertex {
     vec3 binormal;
     vec3 worldPos;
     float height;
+    vec4 shadowProj;
 } OUT;
 
 void main(void){
@@ -43,4 +47,8 @@ void main(void){
     OUT.height = position.y / terrainHeight;
 
     gl_Position = (projMatrix * viewMatrix) * worldPos;
+
+    vec3 viewDir = normalize(lightPos - worldPos.xyz);
+    vec4 pushVal = vec4(OUT.normal, 0) * dot(viewDir, OUT.normal);
+    OUT.shadowProj = shadowMatrix * (worldPos + pushVal);
 }

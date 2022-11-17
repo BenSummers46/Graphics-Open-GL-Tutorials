@@ -38,7 +38,9 @@ _-_-_-_-_-_-_-""  ""
 
 using std::vector;
 
-#define OPENGL_DEBUGGING
+#ifdef _DEBUG
+	#define OPENGL_DEBUGGING
+#endif
 
 extern const Matrix4 biasMatrix;
 

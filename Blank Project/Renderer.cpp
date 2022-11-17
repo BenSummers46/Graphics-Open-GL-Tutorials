@@ -7,6 +7,8 @@
 #include "../nclgl/SceneNode.h"
 #include "../nclgl/MeshAnimation.h"
 
+#define SHADOWSIZE 2048
+
 Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	quad = Mesh::GenerateQuad();
 	tower = Mesh::LoadFromMeshFile("RuinedTower.msh");
@@ -39,16 +41,17 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	animShader = new Shader("coursework/AnimationVertex.glsl", "coursework/TexturedWolf.glsl");
 	processShader = new Shader("TexturedVertex.glsl", "ProcessFrag.glsl");
 	sceneShader = new Shader("TexturedVertex.glsl", "TexturedFragment.glsl");
+	shadowShader = new Shader("ShadowVertex.glsl", "ShadowFragment.glsl");
 
 	if (!skyboxShader->LoadSuccess() || !lightShader->LoadSuccess() || !waterShader->LoadSuccess() || !towerShader->LoadSuccess() || !mainTreeShader->LoadSuccess() ||
-		!forestShader->LoadSuccess() || !animShader->LoadSuccess() || !processShader->LoadSuccess() || !sceneShader->LoadSuccess()) {
+		!forestShader->LoadSuccess() || !animShader->LoadSuccess() || !processShader->LoadSuccess() || !sceneShader->LoadSuccess() || !shadowShader->LoadSuccess()) {
 		return;
 	}
 
 	Vector3 heightmapSize = heightMap->GetHeightMapSize();
 
 	camera = new Camera(-45.0f, 0.0f, heightmapSize * Vector3(0.5f, 1.0f, 0.5f)); 
-	light = new Light(heightmapSize * Vector3(0.4f, 1.3f, 1.0f), Vector4(1, 1, 1, 1), Vector4(1, 1, 1, 1), heightmapSize.x * 2); 
+	light = new Light(heightmapSize * Vector3(0.4f, 1.3f, 0.8f), Vector4(1, 1, 1, 1), Vector4(1, 1, 1, 1), heightmapSize.x * 2);  //Vector3(0.4f, 1.3f, 1.0f)
 
 	treeRoot = new SceneNode();
 	treeRoot->SetTransform(Matrix4::Translation(Vector3(heightmapSize.x * 0.75, heightmapSize.y * 0.06, heightmapSize.z * 0.35)));
@@ -99,6 +102,7 @@ Renderer::~Renderer(void)	{
 	delete processShader;
 	delete sceneShader;
 	delete animShader;
+	delete shadowShader;
 	delete light;
 	delete treeRoot;
 	delete animMesh;
@@ -106,6 +110,8 @@ Renderer::~Renderer(void)	{
 
 	glDeleteTextures(2, bufferColourTex);
 	glDeleteTextures(1, &bufferDepthTex);
+	glDeleteTextures(1, &shadowTex);
+	glDeleteFramebuffers(1, &shadowFBO);
 	glDeleteFramebuffers(1, &bufferFBO);
 	glDeleteFramebuffers(1, &processFBO);
 }
@@ -140,6 +146,21 @@ void Renderer::GenerateBuffers() {
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE || !bufferDepthTex || !bufferColourTex[0]) {
 		return;
 	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glGenTextures(1, &shadowTex);
+	glBindTexture(GL_TEXTURE_2D, shadowTex);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOWSIZE, SHADOWSIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glGenFramebuffers(1, &shadowFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex, 0);
+	glDrawBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -185,10 +206,53 @@ void Renderer::UpdateScene(float dt) {
 }
 
 void Renderer::RenderScene()	{
+	DrawShadowScene();
+	
+	viewMatrix = camera->BuildViewMatrix();
+	projMatrix = Matrix4::Perspective(1.0f, 20000.0f, (float)width / (float)height, 45.0f);
+	UpdateShaderMatrices();
+	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrix);
+	glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(Matrix4), projMatrix.values, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrix);
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(Matrix4), sizeof(Matrix4), viewMatrix.values);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	
 	DrawScene();
 
 	DrawPostProcess();
 	PresentScene();
+}
+
+void Renderer::DrawShadowScene() {
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+	BindShader(shadowShader);
+
+	viewMatrix = Matrix4::BuildViewMatrix(light->GetPosition(), Vector3(heightMap->GetHeightMapSize().x * 0.7, heightMap->GetHeightMapSize().y * 0.1, heightMap->GetHeightMapSize().z * 0.4));
+	projMatrix = Matrix4::Perspective(1000, 7500, 1, 45);
+	shadowMatrix = projMatrix * viewMatrix;
+
+	UpdateShaderMatrices();
+	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrix);
+	glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(Matrix4), projMatrix.values, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrix);
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(Matrix4), sizeof(Matrix4), viewMatrix.values);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	DrawHeightMap();
+	DrawForest();
+	DrawTower();
+	DrawAnimation();
+
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glViewport(0, 0, width, height);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Renderer::ToggleBlur() {
@@ -445,6 +509,10 @@ void Renderer::DrawHeightMap() {
 	glUniform1i(glGetUniformLocation(lightShader->GetProgram(), "snowBump"), 7);
 	glActiveTexture(GL_TEXTURE7);
 	glBindTexture(GL_TEXTURE_2D, snowBump);
+
+	glUniform1i(glGetUniformLocation(lightShader->GetProgram(), "shadowTex"), 8);
+	glActiveTexture(GL_TEXTURE8);
+	glBindTexture(GL_TEXTURE_2D, shadowTex);
 
 	modelMatrix.ToIdentity();
 	textureMatrix.ToIdentity();

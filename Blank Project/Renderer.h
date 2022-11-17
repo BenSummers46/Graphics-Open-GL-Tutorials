@@ -30,6 +30,8 @@ protected:
 	void PresentScene();
 	void DrawScene();
 
+	void DrawShadowScene();
+
 	void BuildNodeLists(SceneNode* from);
 	void SortNodeLists();
 	void DrawNode(SceneNode* n);
@@ -47,6 +49,7 @@ protected:
 	Shader* animShader;
 	Shader* processShader;
 	Shader* sceneShader;
+	Shader* shadowShader;
 
 	HeightMap* heightMap;
 	HeightMap* waterMap;
@@ -79,6 +82,8 @@ protected:
 	GLuint processFBO;
 	GLuint bufferColourTex[2];
 	GLuint bufferDepthTex;
+	GLuint shadowTex;
+	GLuint shadowFBO;
 
 	unsigned int uboMatrix;
 	vector<SceneNode*> nodeList;
