@@ -174,8 +174,8 @@ void Renderer::LoadTextures() {
 
 	forestTex = SOIL_load_OGL_texture(TEXTUREDIR"forest1k.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	forestBump = SOIL_load_OGL_texture(TEXTUREDIR"forest1knormal.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	coastTex = SOIL_load_OGL_texture(TEXTUREDIR"coast_sand.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
-	coastBump = SOIL_load_OGL_texture(TEXTUREDIR"coast_sand_bump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	coastTex = SOIL_load_OGL_texture(TEXTUREDIR"sand1k.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
+	coastBump = SOIL_load_OGL_texture(TEXTUREDIR"SandNormal1k.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	snowTex = SOIL_load_OGL_texture(TEXTUREDIR"snow1k.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	snowBump = SOIL_load_OGL_texture(TEXTUREDIR"snow1knormal.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
 	towerTex = SOIL_load_OGL_texture(TEXTUREDIR"RuinedTower_vcols.bmp", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS);
