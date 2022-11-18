@@ -7,7 +7,7 @@
 #include "../nclgl/SceneNode.h"
 #include "../nclgl/MeshAnimation.h"
 
-#define SHADOWSIZE 2048
+#define SHADOWSIZE 8192
 
 Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	quad = Mesh::GenerateQuad();
