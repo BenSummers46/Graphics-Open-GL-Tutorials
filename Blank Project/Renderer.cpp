@@ -81,6 +81,8 @@ Renderer::Renderer(Window &parent) : OGLRenderer(parent)	{
 	frameTime = 0.0f;
 	spiderMove = 0.65f;
 	POST_PASSES = 0;
+	autoCamera = false;
+	camX = 0.2f;
 	CreateMatrixUBO();
 	GenerateBuffers();
 
@@ -184,7 +186,20 @@ void Renderer::LoadTextures() {
 }
 
 void Renderer::UpdateScene(float dt) {
-	camera->UpdateCamera(dt);
+	if (!autoCamera) {
+		camera->UpdateCamera(dt);
+	}
+	else {
+		if (camX == 0.2f) {
+			camera->SetPitch(0);
+			camera->SetYaw(-90);
+		}
+		camera->SetPosition(Vector3(heightMap->GetHeightMapSize().x * camX, heightMap->GetHeightMapSize().y * 0.2, heightMap->GetHeightMapSize().z * 0.55));
+		camera->SetPitch(camera->GetPitch() - Window::GetMouse()->GetRelativePosition().y);
+		camera->SetYaw(camera->GetYaw() - Window::GetMouse()->GetRelativePosition().x);
+		camX += 0.001;
+	}
+	
 	viewMatrix = camera->BuildViewMatrix();
 	projMatrix = Matrix4::Perspective(1.0f, 20000.0f, (float)width / (float)height, 45.0f);
 	treeRoot->Update(dt);

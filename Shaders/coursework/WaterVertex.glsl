@@ -34,46 +34,48 @@ out Vertex {
     float height;
 } OUT;
 
-vec3 gerstner_normal(vec3 position, float time){
-    vec3 wave_normal = vec3(0.0, 1.0, 0.0);
-    for(int i = 0; i < wave_amount; ++i){
-        float proj = dot(position.xz, gerstner[i].direction),
-        phase = time * gerstner[i].speed,
-        psi = proj * gerstner[i].frequency + phase,
-        af = gerstner[i].amplitude * gerstner[i].frequency,
-        alpha = af * sin(psi);
-
-        wave_normal.y -= gerstner[i].steepness * alpha;
-
-        float x = gerstner[i].direction.x,
-        y = gerstner[i].direction.y,
-        omega = af * cos(psi);
-
-        wave_normal.x -= x * omega;
-        wave_normal.z -= y * omega;
-    }
-    return wave_normal;
-}
-
+// Generates the vertex position.
 vec3 gerstner_wave_pos(vec2 position, float time){
     vec3 wave_position = vec3(position.x, 0, position.y);
     for(int i = 0; i < wave_amount; ++i){
-        float proj = dot(position, gerstner[i].direction),
-        phase = time * gerstner[i].speed,
-        theta = proj * gerstner[i].frequency + phase,
-        height = gerstner[i].amplitude * sin(theta);
+        float dir = dot(position, gerstner[i].direction),
+        point = time * gerstner[i].speed,
+        j = dir * gerstner[i].frequency + point,
+        height = gerstner[i].amplitude * sin(j);
 
         wave_position.y += height;
 
         float maximum_width = gerstner[i].steepness * gerstner[i].amplitude,
-        width = maximum_width * cos(theta),
+        wave_width = maximum_width * cos(j),
         x = gerstner[i].direction.x,
         y = gerstner[i].direction.y;
 
-        wave_position.x += x * width;
-        wave_position.z += y * width;
+        wave_position.x += x * wave_width;
+        wave_position.z += y * wave_width;
     }
     return wave_position;
+}
+
+// Generates the normal for the new position.
+vec3 gerstner_normal(vec3 position, float time){
+    vec3 wave_normal = vec3(0.0, 1.0, 0.0);
+    for(int i = 0; i < wave_amount; ++i){
+        float dir = dot(position.xz, gerstner[i].direction),
+        point = time * gerstner[i].speed,
+        freq = dir * gerstner[i].frequency + point,
+        height = gerstner[i].amplitude * gerstner[i].frequency,
+        a = height * sin(freq);
+
+        wave_normal.y -= gerstner[i].steepness * a;
+
+        float x = gerstner[i].direction.x,
+        y = gerstner[i].direction.y,
+        pos = height * cos(freq);
+
+        wave_normal.x -= x * pos;
+        wave_normal.z -= y * pos;
+    }
+    return wave_normal;
 }
 
 vec3 gerstner_wave(vec2 position, float time, inout vec3 normal){

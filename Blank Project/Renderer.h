@@ -15,6 +15,8 @@ public:
 	 void RenderScene()	  override;
 	 void UpdateScene(float msec)	override;
 	 void ToggleBlur();
+
+	 bool autoCamera;
 protected:
 	void DrawHeightMap();
 	void DrawSkyBox();
@@ -92,4 +94,5 @@ protected:
 	float frameTime;
 	float spiderMove;
 	int POST_PASSES;
+	float camX;
 };

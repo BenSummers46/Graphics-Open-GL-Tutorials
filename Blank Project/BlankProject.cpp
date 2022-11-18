@@ -22,8 +22,11 @@ int main()	{
 		if (Window::GetKeyboard()->KeyDown(KEYBOARD_F5)) {
 			Shader::ReloadAllShaders();
 		}
-		if (Window::GetKeyboard()->KeyDown(KEYBOARD_B)) {
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_B)) {
 			renderer.ToggleBlur();
+		}
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_C)) {
+			renderer.autoCamera = !renderer.autoCamera;
 		}
 	}
 	return 0;
